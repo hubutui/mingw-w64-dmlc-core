@@ -1,0 +1,29 @@
+name: build-pkg
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            dos2unix
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-toolchain
+      - name: makepkg
+        run: |
+          dos2unix PKGBUILD
+          makepkg-mingw -LC
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: pkg-archive
+          path: '*.zst'
